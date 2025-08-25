@@ -26,8 +26,6 @@
     .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:12px}
     @media (max-width:860px){ .grid{grid-template-columns:1fr} }
     .card{background:rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:14px; padding:14px}
-
-    /* Controls */
     .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .row label{display:flex; gap:6px; align-items:center}
     select,button{border-radius:12px; border:1px solid var(--brd); background:#0a1426; color:var(--text);
@@ -36,28 +34,25 @@
       box-shadow:0 8px 20px rgba(56,189,248,.25)}
     button.ghost{background:transparent; color:var(--text)}
     button.alt{background:linear-gradient(180deg,#c7d2fe,#93c5fd); color:#0b1220}
-
-    /* Stage */
     .stage{display:grid; place-items:center; min-height:420px; position:relative; overflow:hidden}
     .circle{
-      width: clamp(180px, 70vw, 420px);          /* ключевой фикс: адекватная ширина на мобильных */
-      aspect-ratio: 1 / 1;
-      border-radius:50%;
+      width: clamp(180px, 70vw, 420px);
+      aspect-ratio: 1 / 1; border-radius:50%;
       background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,.06));
       border:1px solid rgba(255,255,255,.18);
       display:grid; place-items:center;
       transition: transform 4s ease-in-out;
       transform: scale(1);
       box-shadow: inset 0 2px 10px rgba(255,255,255,.06), 0 18px 40px rgba(0,0,0,.35);
-      margin-inline:auto;             /* исключаем случайные переполнения */
-      max-width: 100%;
+      margin-inline:auto; max-width:100%;
     }
+    /* В полноэкранном режиме — круг крупнее */
+    .fs .circle{ width: min(88vmin, 720px); }
+
     .phase{text-align:center}
     .phase .name{font-size:clamp(16px,2.8vw,20px)}
     .phase .sec{font-variant-numeric:tabular-nums; font-weight:800; font-size:clamp(26px,6vw,44px)}
-
     .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px}
-
     .kpi{display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:8px}
     @media (max-width:420px){ .kpi{grid-template-columns:1fr 1fr} }
     .tile{background:rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:12px; padding:10px; text-align:center}
@@ -67,20 +62,15 @@
     .dot{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.15)}
     .dot.on{background:linear-gradient(180deg,var(--accent2),#22c55e)}
     .hint{text-align:center; margin-top:8px; color:#c7d2fe}
-    .share{display:flex; gap:8px; justify-content:center; margin-top:10px}
     .hidden{display:none !important}
-
-    /* Доп. мобильные улучшения: уменьшаем отступы и размеры контролов */
     @media (max-width:420px){
-      body{padding:10px}
-      .app{padding:12px}
-      .card{padding:10px}
+      body{padding:10px} .app{padding:12px} .card{padding:10px}
       select,button{padding:8px 10px; font-size:13px}
     }
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="appRoot">
     <header>
       <div>
         <h1>Медитация дыханием от AnyClass</h1>
@@ -99,11 +89,11 @@
         <label><span class="muted">Музыка</span>
           <input id="musicToggle" type="checkbox" />
         </label>
+        <button id="btnFs" class="ghost" title="Во весь экран">Во весь экран</button>
       </div>
     </header>
 
     <div class="grid">
-      <!-- Stage -->
       <section class="card stage">
         <div class="circle" id="circle">
           <div class="phase">
@@ -116,28 +106,14 @@
           <button id="btnPause" class="ghost" disabled>Пауза</button>
           <button id="btnReset" class="alt" disabled>Сброс</button>
         </div>
-        <div class="hint" id="hint">Следуй за кругом: Вдох → Пауза → Выдох → Пауза (4‑4‑4‑4)</div>
-        <div class="share hidden" id="shareRow">
-          <button id="btnShare" class="ghost">Поделиться</button>
-          <a id="btnShareTG" class="ghost" target="_blank" rel="noopener">В Telegram</a>
-        </div>
+        <div class="hint">Следуй за кругом: Вдох → Пауза → Выдох → Пауза (4‑4‑4‑4)</div>
       </section>
 
-      <!-- Stats -->
       <aside class="card">
         <div class="kpi">
-          <div class="tile">
-            <div class="label">Минут за 7 дней</div>
-            <div class="value" id="statMinutes">0</div>
-          </div>
-          <div class="tile">
-            <div class="label">Streak (дней подряд)</div>
-            <div class="value" id="statStreak">0</div>
-          </div>
-          <div class="tile">
-            <div class="label">Неделя прогресса</div>
-            <div class="value"><div class="dots" id="weekDots"></div></div>
-          </div>
+          <div class="tile"><div class="label">Минут за 7 дней</div><div class="value" id="statMinutes">0</div></div>
+          <div class="tile"><div class="label">Streak (дней подряд)</div><div class="value" id="statStreak">0</div></div>
+          <div class="tile"><div class="label">Неделя прогресса</div><div class="value"><div class="dots" id="weekDots"></div></div></div>
         </div>
         <p class="muted" style="margin:10px 0 0">Совет: попробуй 3 минуты утром и 5 минут вечером — это помогает стабилизировать дыхание и сон.</p>
       </aside>
@@ -145,177 +121,93 @@
   </div>
 
   <script>
-    // ---------- UI refs ----------
     const $ = (id)=>document.getElementById(id);
-    const durationSel = $('duration');
-    const circle = $('circle');
-    const phaseName = $('phaseName');
-    const phaseSec = $('phaseSec');
-    const shareRow = $('shareRow');
-    const shareBtn = $('btnShare');
-    const shareTG = $('btnShareTG');
-    const musicToggle = $('musicToggle');
+    const durationSel = $('duration'), circle=$('circle'), phaseName=$('phaseName'), phaseSec=$('phaseSec'),
+          musicToggle=$('musicToggle'), appRoot=$('appRoot'), btnFs=$('btnFs');
+    const phases=[{name:'Вдох',sec:4,scale:1.16},{name:'Пауза',sec:4,scale:1.16},{name:'Выдох',sec:4,scale:0.84},{name:'Пауза',sec:4,scale:0.84}];
+    let i=0,t=0,timer=null,paused=false,sessionTimer=null,sessionRemain=0,sessionMin=3;
 
-    // ---------- Breathing config (4-4-4-4) ----------
-    const phases = [
-      {name:'Вдох',   sec:4, scale:1.16},
-      {name:'Пауза',  sec:4, scale:1.16},
-      {name:'Выдох',  sec:4, scale:0.84},
-      {name:'Пауза',  sec:4, scale:0.84},
-    ];
-    let i=0, t=0, timer=null, paused=false;
-    let sessionTimer=null, sessionRemain=0, sessionMin=3;
-
-    // ---------- Stats (7-day window) ----------
+    // Stats (как раньше)
     const LS_KEY='anyclass_meditation_stats_v2';
-    function loadStats(){
-      try{ return JSON.parse(localStorage.getItem(LS_KEY)) || { byDay:{}, streak:0, lastDay:null }; }
-      catch(e){ return { byDay:{}, streak:0, lastDay:null }; }
-    }
-    function saveStats(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
-    function todayISO(d=new Date()){ d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
-    function yestISO(){ const d=new Date(); d.setDate(d.getDate()-1); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
-    function sumLast7(byDay){
-      let sum=0; const d=new Date();
-      for(let k=0;k<7;k++){ const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd); sum += byDay[key]||0; }
-      return sum;
-    }
-    function weekDotsCount(byDay){
-      let cnt=0; const d=new Date();
-      for(let k=0;k<7;k++){ const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd); if((byDay[key]||0)>0) cnt++; }
-      return cnt;
-    }
-    function renderDots(container, count){
-      container.innerHTML=''; for(let i=0;i<7;i++){ const d=document.createElement('div'); d.className='dot'+(i<count?' on':''); container.appendChild(d); }
-    }
-    function updateStatsUI(){
-      const s=loadStats();
-      $('statMinutes').textContent = sumLast7(s.byDay)|0;
-      $('statStreak').textContent  = s.streak|0;
-      renderDots($('weekDots'), weekDotsCount(s.byDay));
-    }
+    function loadStats(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{byDay:{},streak:0,lastDay:null};}catch(e){return{byDay:{},streak:0,lastDay:null};}}
+    function saveStats(s){localStorage.setItem(LS_KEY,JSON.stringify(s));}
+    function todayISO(d=new Date()){d.setHours(0,0,0,0);return d.toISOString().slice(0,10);}
+    function yestISO(){const d=new Date();d.setDate(d.getDate()-1);d.setHours(0,0,0,0);return d.toISOString().slice(0,10);}
+    function sumLast7(byDay){let sum=0;const d=new Date();for(let k=0;k<7;k++){const dd=new Date(d);dd.setDate(d.getDate()-k);sum+=byDay[todayISO(dd)]||0;}return sum;}
+    function weekDotsCount(byDay){let cnt=0;const d=new Date();for(let k=0;k<7;k++){const dd=new Date(d);dd.setDate(d.getDate()-k);if((byDay[todayISO(dd)]||0)>0)cnt++;}return cnt;}
+    function renderDots(c,count){c.innerHTML='';for(let i=0;i<7;i++){const d=document.createElement('div');d.className='dot'+(i<count?' on':'');c.appendChild(d);}}
+    function updateStatsUI(){const s=loadStats();$('statMinutes').textContent=sumLast7(s.byDay)|0;$('statStreak').textContent=s.streak|0;renderDots($('weekDots'),weekDotsCount(s.byDay));}
 
-    // ---------- Simple sounds (start/end) ----------
-    let audioCtx;
-    function ensureCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-    function tone(freq=660, dur=0.25, type='sine', gain=0.05){
-      ensureCtx();
-      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-      o.type=type; o.frequency.value=freq; g.gain.value=0.0001;
-      o.connect(g); g.connect(audioCtx.destination);
-      const t=audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(gain, t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t+dur); o.start(t); o.stop(t+dur+0.02);
-    }
-    function chimeStart(){ tone(660,0.18); setTimeout(()=>tone(880,0.18),140); }
-    function gongEnd(){ tone(520,0.32); setTimeout(()=>tone(392,0.38),220); }
+    // Sounds
+    let audioCtx;function ensureCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+    function tone(freq=660,dur=0.25){ensureCtx();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.value=0.0001;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime;g.gain.exponentialRampToValueAtTime(0.05,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.02);}
+    function chimeStart(){tone(660,0.18);setTimeout(()=>tone(880,0.18),140);}
+    function gongEnd(){tone(520,0.32);setTimeout(()=>tone(392,0.38),220);}
+    let padGain=null,padNodes=[];function startPad(){if(!musicToggle.checked)return;ensureCtx();padGain=audioCtx.createGain();padGain.gain.value=0.0001;padGain.connect(audioCtx.destination);const lp=audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=800;lp.Q.value=0.7;lp.connect(padGain);const makeVoice=(f,d)=>{const o=audioCtx.createOscillator();o.type='sine';o.frequency.value=f;o.detune.value=d;const g=audioCtx.createGain();g.gain.value=0.06;o.connect(g);g.connect(lp);o.start();return{o,g};};padNodes=[makeVoice(220,0),makeVoice(277.18,-6)];const lfo=audioCtx.createOscillator();const lfoGain=audioCtx.createGain();lfo.type='sine';lfo.frequency.value=0.08;lfoGain.gain.value=0.02;lfo.connect(lfoGain);lfoGain.connect(padGain.gain);lfo.start();padNodes.push({o:lfo,g:lfoGain});const t=audioCtx.currentTime;padGain.gain.exponentialRampToValueAtTime(0.08,t+1.2);}
+    function stopPad(){if(!audioCtx||!padGain)return;const t=audioCtx.currentTime;try{padGain.gain.exponentialRampToValueAtTime(0.0001,t+0.8);}catch(e){}setTimeout(()=>{padNodes.forEach(n=>{try{n.o.stop();}catch(e){}});padNodes=[];try{padGain.disconnect();}catch(e){}padGain=null;},900);}
 
-    // ---------- Calm pad (procedural background, no files) ----------
-    let padGain=null, padNodes=[];
-    function startPad(){
-      if(!musicToggle.checked) return;
-      ensureCtx();
-      padGain = audioCtx.createGain(); padGain.gain.value=0.0001; padGain.connect(audioCtx.destination);
-      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800; lp.Q.value=0.7; lp.connect(padGain);
-      const makeVoice=(freq, detune)=>{
-        const o = audioCtx.createOscillator(); o.type='sine'; o.frequency.value=freq; o.detune.value=detune;
-        const g = audioCtx.createGain(); g.gain.value=0.06; o.connect(g); g.connect(lp); o.start(); return {o,g};
-      };
-      padNodes = [ makeVoice(220, 0), makeVoice(277.18, -6) ];
-      const lfo = audioCtx.createOscillator(); const lfoGain = audioCtx.createGain();
-      lfo.type='sine'; lfo.frequency.value=0.08; lfoGain.gain.value=0.02; lfo.connect(lfoGain); lfoGain.connect(padGain.gain); lfo.start();
-      padNodes.push({o:lfo,g:lfoGain});
-      const t=audioCtx.currentTime; padGain.gain.exponentialRampToValueAtTime(0.08, t+1.2);
-    }
-    function stopPad(){
-      if(!audioCtx || !padGain) return;
-      const t=audioCtx.currentTime;
-      try{ padGain.gain.exponentialRampToValueAtTime(0.0001, t+0.8);}catch(e){}
-      setTimeout(()=>{ padNodes.forEach(n=>{try{n.o.stop();}catch(e){}}); padNodes=[]; try{padGain.disconnect();}catch(e){} padGain=null; }, 900);
-    }
+    // Session control
+    document.getElementById('btnStart').addEventListener('click',start);
+    document.getElementById('btnPause').addEventListener('click',togglePause);
+    document.getElementById('btnReset').addEventListener('click',reset);
+    durationSel.addEventListener('change',()=>sessionMin=Number(durationSel.value));
+    sessionMin=Number(durationSel.value);
 
-    // ---------- Session control ----------
-    $('btnStart').addEventListener('click', start);
-    $('btnPause').addEventListener('click', togglePause);
-    $('btnReset').addEventListener('click', reset);
-    durationSel.addEventListener('change', ()=> sessionMin = Number(durationSel.value));
-    sessionMin = Number(durationSel.value);
-
-    function start(){
-      if(timer) return;
-      i=0; paused=false; shareRow.classList.add('hidden');
-      sessionRemain = sessionMin*60;
-      phaseName.textContent = phases[0].name; phaseSec.textContent = phases[0].sec;
-      circle.style.transform = `scale(${phases[0].scale})`;
+    function start(){ if(timer)return;
+      i=0; paused=false; sessionRemain=sessionMin*60;
+      phaseName.textContent=phases[0].name; phaseSec.textContent=phases[0].sec;
+      circle.style.transform=`scale(${phases[0].scale})`;
       $('btnPause').disabled=false; $('btnReset').disabled=false; $('btnStart').disabled=true;
-      chimeStart(); startPad();
-      runSession(); nextPhase();
+      chimeStart(); startPad(); runSession(); nextPhase();
     }
-    function runSession(){
-      sessionTimer = setInterval(()=>{
-        if(!paused){
-          sessionRemain--;
-          if(sessionRemain<=0){ finish(); }
-        }
-      },1000);
+    function runSession(){ sessionTimer=setInterval(()=>{ if(!paused){ sessionRemain--; if(sessionRemain<=0){ finish(); } } },1000); }
+    function nextPhase(){ const p=phases[i]; t=p.sec; phaseName.textContent=p.name; phaseSec.textContent=t;
+      circle.style.transitionDuration=Math.max(1.0,p.sec*0.85)+'s'; circle.style.transform=`scale(${p.scale})`;
+      timer=setInterval(()=>{ if(!paused){ t--; phaseSec.textContent=t; if(t<=0){ clearInterval(timer); timer=null; i=(i+1)%phases.length; if(sessionRemain>0) nextPhase(); } } },1000);
     }
-    function nextPhase(){
-      const p = phases[i];
-      t = p.sec;
-      phaseName.textContent = p.name; phaseSec.textContent = t;
-      circle.style.transitionDuration = Math.max(1.0, p.sec*0.85)+'s';
-      circle.style.transform = `scale(${p.scale})`;
-      timer = setInterval(()=>{
-        if(!paused){
-          t--; phaseSec.textContent = t;
-          if(t<=0){
-            clearInterval(timer); timer=null;
-            i=(i+1)%phases.length;
-            if(sessionRemain>0) nextPhase();
-          }
-        }
-      },1000);
+    function togglePause(){ if(!timer&&sessionRemain<=0) return; paused=!paused; $('btnPause').textContent=paused?'Продолжить':'Пауза'; if(paused) stopPad(); else startPad(); }
+    function reset(){ if(timer){clearInterval(timer);timer=null;} if(sessionTimer){clearInterval(sessionTimer);sessionTimer=null;}
+      paused=false; sessionRemain=0; circle.style.transform='scale(1)'; phaseName.textContent='Готово к началу'; phaseSec.textContent='—';
+      $('btnPause').disabled=true; $('btnReset').disabled=true; $('btnStart').disabled=false; stopPad();
     }
-    function togglePause(){
-      if(!timer && sessionRemain<=0) return;
-      paused = !paused;
-      $('btnPause').textContent = paused? 'Продолжить' : 'Пауза';
-      if(paused) stopPad(); else startPad();
-    }
-    function reset(){
-      if(timer){ clearInterval(timer); timer=null; }
-      if(sessionTimer){ clearInterval(sessionTimer); sessionTimer=null; }
-      paused=false; sessionRemain=0;
-      circle.style.transform='scale(1)'; phaseName.textContent='Готово к началу'; phaseSec.textContent='—';
-      $('btnPause').disabled=true; $('btnReset').disabled=true; $('btnStart').disabled=false;
-      shareRow.classList.add('hidden'); stopPad();
-    }
-    function finish(){
-      clearInterval(sessionTimer); sessionTimer=null;
-      if(timer){ clearInterval(timer); timer=null; }
-      $('btnStart').disabled=false; $('btnPause').disabled=true;
-      gongEnd(); stopPad();
-      phaseName.textContent='Сессия завершена'; phaseSec.textContent='✓';
-      // stats
-      const s=loadStats(); const today=todayISO();
-      s.byDay[today] = (s.byDay[today]||0) + sessionMin;
-      if(s.lastDay !== today){ if(s.lastDay === yestISO()) s.streak=(s.streak||0)+1; else s.streak=1; s.lastDay=today; }
+    function finish(){ clearInterval(sessionTimer); sessionTimer=null; if(timer){clearInterval(timer);timer=null;}
+      $('btnStart').disabled=false; $('btnPause').disabled=true; gongEnd(); stopPad(); phaseName.textContent='Сессия завершена'; phaseSec.textContent='✓';
+      const s=loadStats(); const today=todayISO(); s.byDay[today]=(s.byDay[today]||0)+sessionMin;
+      if(s.lastDay!==today){ if(s.lastDay===yestISO()) s.streak=(s.streak||0)+1; else s.streak=1; s.lastDay=today; }
       saveStats(s); updateStatsUI();
-      // share
-      shareRow.classList.remove('hidden');
-      const msg = `Я завершила ${sessionMin}-минутную практику дыхания сегодня 🙏`;
-      shareBtn.onclick = async ()=> {
-        if(navigator.share){ try{ await navigator.share({title:'Медитация дыханием от AnyClass', text:msg, url:window.location.href}); }catch(e){} }
-        else { alert('Поделиться не поддерживается этим браузером. Используй кнопку Telegram.'); }
-      };
-      shareTG.href = "https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + encodeURIComponent(msg);
     }
+    (function init(){ updateStatsUI(); const dots=$('weekDots'); dots.innerHTML=''; for(let k=0;k<7;k++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); } renderDots(dots,weekDotsCount(loadStats().byDay||{})); })();
 
-    // ---------- init ----------
-    (function init(){
-      updateStatsUI();
-      const dots=$('weekDots'); dots.innerHTML=''; for(let k=0;k<7;k++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); }
-      renderDots(dots, weekDotsCount(loadStats().byDay||{}));
-    })();
+    // ---------- Fullscreen ----------
+    function inFullscreen(){
+      return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    }
+    async function enterFs(el){
+      try{
+        if(el.requestFullscreen) await el.requestFullscreen();
+        else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+        else if(el.msRequestFullscreen) await el.msRequestFullscreen();
+      }catch(e){}
+    }
+    async function exitFs(){
+      try{
+        if(document.exitFullscreen) await document.exitFullscreen();
+        else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+        else if(document.msExitFullscreen) await document.msExitFullscreen();
+      }catch(e){}
+    }
+    btnFs.addEventListener('click', async ()=>{
+      if(inFullscreen()){ await exitFs(); }
+      else { await enterFs(appRoot); }
+    });
+    function onFsChange(){
+      const fs = !!inFullscreen();
+      document.body.classList.toggle('fs', fs);
+      btnFs.textContent = fs ? 'Выйти из полноэкранного' : 'Во весь экран';
+    }
+    ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(ev=>{
+      document.addEventListener(ev, onFsChange);
+    });
   </script>
 </body>
 </html>
