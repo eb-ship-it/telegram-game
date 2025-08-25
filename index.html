@@ -3,72 +3,91 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AnyClass — Медитация дыханием</title>
+  <title>Медитация дыханием от AnyClass</title>
   <style>
     :root{
       --bg:#0f172a; --text:#e5e7eb; --muted:#94a3b8;
-      --accent:#38bdf8; --accent2:#34d399; --warn:#facc15;
-      --card:rgba(255,255,255,.05); --brd:rgba(255,255,255,.12);
+      --accent:#38bdf8; --accent2:#34d399; --brd:rgba(255,255,255,.12);
     }
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
       background: radial-gradient(1000px at 50% -20%, #1e293b 0%, var(--bg) 55%);
       color:var(--text); display:grid; place-items:center; min-height:100vh; padding:16px;
     }
-    .app{ width:100%; max-width:820px; background:var(--card); border:1px solid var(--brd);
-      border-radius:16px; padding:18px; box-shadow:0 18px 40px rgba(0,0,0,.35); }
-    header{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-    h1{ margin:0; font-size:clamp(20px,3.2vw,28px); }
-    .sub{ color:var(--muted); font-size:14px; }
-    .grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:12px; }
-    @media (max-width:860px){ .grid{ grid-template-columns:1fr; } }
-    .card{ background: rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:14px; padding:14px; }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .grow{ flex:1 1 auto; }
-    select,button,.switch{
-      border-radius:12px; border:1px solid var(--brd); background:#0a1426; color:var(--text);
-      padding:10px 12px; font-weight:600;
+    .app{
+      width:100%; max-width:820px; background:rgba(255,255,255,.05); border:1px solid var(--brd);
+      border-radius:16px; padding:18px; box-shadow:0 18px 40px rgba(0,0,0,.35);
     }
-    button{
-      cursor:pointer; background: linear-gradient(180deg, var(--accent), #0ea5e9); color:#07121f;
-      box-shadow:0 10px 24px rgba(56,189,248,.25);
-    }
-    button.ghost{ background:transparent; color:var(--text); }
-    button.alt{ background: linear-gradient(180deg,#c7d2fe,#93c5fd); color:#0b1220; }
-    .muted{ color:var(--muted); }
-    .stage{ display:grid; place-items:center; min-height:420px; position:relative; overflow:hidden; }
-    .circle{ width:min(72vmin,420px); aspect-ratio:1/1; border-radius:50%;
+    header{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    h1{margin:0; font-size:clamp(18px,3.2vw,28px)}
+    .sub{color:var(--muted); font-size:14px}
+    .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:12px}
+    @media (max-width:860px){ .grid{grid-template-columns:1fr} }
+    .card{background:rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:14px; padding:14px}
+
+    /* Controls */
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .row label{display:flex; gap:6px; align-items:center}
+    select,button{border-radius:12px; border:1px solid var(--brd); background:#0a1426; color:var(--text);
+      padding:10px 12px; font-weight:600; font-size:14px}
+    button{cursor:pointer; background:linear-gradient(180deg,var(--accent),#0ea5e9); color:#07121f;
+      box-shadow:0 8px 20px rgba(56,189,248,.25)}
+    button.ghost{background:transparent; color:var(--text)}
+    button.alt{background:linear-gradient(180deg,#c7d2fe,#93c5fd); color:#0b1220}
+
+    /* Stage */
+    .stage{display:grid; place-items:center; min-height:420px; position:relative; overflow:hidden}
+    .circle{
+      width: clamp(180px, 70vw, 420px);          /* ключевой фикс: адекватная ширина на мобильных */
+      aspect-ratio: 1 / 1;
+      border-radius:50%;
       background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.18), rgba(255,255,255,.06));
       border:1px solid rgba(255,255,255,.18);
-      display:grid; place-items:center; transition: transform 4s ease-in-out; transform: scale(1);
+      display:grid; place-items:center;
+      transition: transform 4s ease-in-out;
+      transform: scale(1);
       box-shadow: inset 0 2px 10px rgba(255,255,255,.06), 0 18px 40px rgba(0,0,0,.35);
+      margin-inline:auto;             /* исключаем случайные переполнения */
+      max-width: 100%;
     }
-    .phase{ text-align:center; }
-    .phase .name{ font-size:clamp(18px,2.8vw,22px); }
-    .phase .sec{ font-variant-numeric: tabular-nums; font-weight:800; font-size:clamp(28px,6vw,46px); }
-    .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px; }
-    .kpi{ display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:8px; }
-    .tile{ background: rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:12px; padding:10px; text-align:center; }
-    .label{ font-size:12px; color:var(--muted); }
-    .value{ font-size:18px; font-weight:800; }
-    .dots{ display:flex; gap:8px; justify-content:center; margin-top:6px; }
-    .dot{ width:10px; height:10px; border-radius:50%; background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.15); }
-    .dot.on{ background: linear-gradient(180deg, var(--accent2), #22c55e); }
-    .hint{ text-align:center; margin-top:8px; color:#c7d2fe; }
-    .share{ display:flex; gap:8px; justify-content:center; margin-top:10px; }
-    .hidden{ display:none !important; }
+    .phase{text-align:center}
+    .phase .name{font-size:clamp(16px,2.8vw,20px)}
+    .phase .sec{font-variant-numeric:tabular-nums; font-weight:800; font-size:clamp(26px,6vw,44px)}
+
+    .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+
+    .kpi{display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:8px}
+    @media (max-width:420px){ .kpi{grid-template-columns:1fr 1fr} }
+    .tile{background:rgba(255,255,255,.04); border:1px solid var(--brd); border-radius:12px; padding:10px; text-align:center}
+    .label{font-size:12px; color:var(--muted)}
+    .value{font-size:18px; font-weight:800}
+    .dots{display:flex; gap:8px; justify-content:center; margin-top:6px}
+    .dot{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.15)}
+    .dot.on{background:linear-gradient(180deg,var(--accent2),#22c55e)}
+    .hint{text-align:center; margin-top:8px; color:#c7d2fe}
+    .share{display:flex; gap:8px; justify-content:center; margin-top:10px}
+    .hidden{display:none !important}
+
+    /* Доп. мобильные улучшения: уменьшаем отступы и размеры контролов */
+    @media (max-width:420px){
+      body{padding:10px}
+      .app{padding:12px}
+      .card{padding:10px}
+      select,button{padding:8px 10px; font-size:13px}
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
       <div>
-        <h1>Медитация дыханием</h1>
+        <h1>Медитация дыханием от AnyClass</h1>
         <div class="sub">Круговая анимация, звуки и статистика за 7 дней</div>
       </div>
       <div class="row">
-        <label class="row" style="gap:6px;">
-          <span class="muted">Длительность</span>
+        <label><span class="muted">Длительность</span>
           <select id="duration">
             <option value="1">1 мин</option>
             <option value="3" selected>3 мин</option>
@@ -77,8 +96,7 @@
             <option value="15">15 мин</option>
           </select>
         </label>
-        <label class="row" style="gap:6px;">
-          <span class="muted">Музыка</span>
+        <label><span class="muted">Музыка</span>
           <input id="musicToggle" type="checkbox" />
         </label>
       </div>
@@ -140,10 +158,10 @@
 
     // ---------- Breathing config (4-4-4-4) ----------
     const phases = [
-      {name:'Вдох',   sec:4, scale:1.18},
-      {name:'Пауза',  sec:4, scale:1.18},
-      {name:'Выдох',  sec:4, scale:0.82},
-      {name:'Пауза',  sec:4, scale:0.82},
+      {name:'Вдох',   sec:4, scale:1.16},
+      {name:'Пауза',  sec:4, scale:1.16},
+      {name:'Выдох',  sec:4, scale:0.84},
+      {name:'Пауза',  sec:4, scale:0.84},
     ];
     let i=0, t=0, timer=null, paused=false;
     let sessionTimer=null, sessionRemain=0, sessionMin=3;
@@ -156,31 +174,19 @@
     }
     function saveStats(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
     function todayISO(d=new Date()){ d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
-    function yestISO(){
-      const d=new Date(); d.setDate(d.getDate()-1); d.setHours(0,0,0,0); return d.toISOString().slice(0,10);
-    }
+    function yestISO(){ const d=new Date(); d.setDate(d.getDate()-1); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
     function sumLast7(byDay){
       let sum=0; const d=new Date();
-      for(let k=0;k<7;k++){
-        const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd);
-        sum += byDay[key]||0;
-      }
+      for(let k=0;k<7;k++){ const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd); sum += byDay[key]||0; }
       return sum;
     }
     function weekDotsCount(byDay){
-      // сколько дней из последних 7 имели практику >0
       let cnt=0; const d=new Date();
-      for(let k=0;k<7;k++){
-        const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd);
-        if((byDay[key]||0)>0) cnt++;
-      }
+      for(let k=0;k<7;k++){ const dd=new Date(d); dd.setDate(d.getDate()-k); const key=todayISO(dd); if((byDay[key]||0)>0) cnt++; }
       return cnt;
     }
     function renderDots(container, count){
-      container.innerHTML=''; for(let i=0;i<7;i++){
-        const dot=document.createElement('div'); dot.className='dot'+(i<count ? ' on':'' );
-        container.appendChild(dot);
-      }
+      container.innerHTML=''; for(let i=0;i<7;i++){ const d=document.createElement('div'); d.className='dot'+(i<count?' on':''); container.appendChild(d); }
     }
     function updateStatsUI(){
       const s=loadStats();
@@ -203,40 +209,28 @@
     function chimeStart(){ tone(660,0.18); setTimeout(()=>tone(880,0.18),140); }
     function gongEnd(){ tone(520,0.32); setTimeout(()=>tone(392,0.38),220); }
 
-    // ---------- Calm pad (procedural background music, no files) ----------
+    // ---------- Calm pad (procedural background, no files) ----------
     let padGain=null, padNodes=[];
     function startPad(){
       if(!musicToggle.checked) return;
       ensureCtx();
-      // master gain
       padGain = audioCtx.createGain(); padGain.gain.value=0.0001; padGain.connect(audioCtx.destination);
-      // two gentle detuned sines through a lowpass
-      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800;
-      lp.Q.value=0.7; lp.connect(padGain);
+      const lp = audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800; lp.Q.value=0.7; lp.connect(padGain);
       const makeVoice=(freq, detune)=>{
         const o = audioCtx.createOscillator(); o.type='sine'; o.frequency.value=freq; o.detune.value=detune;
-        const g = audioCtx.createGain(); g.gain.value=0.06;
-        o.connect(g); g.connect(lp); o.start();
-        return {o,g};
+        const g = audioCtx.createGain(); g.gain.value=0.06; o.connect(g); g.connect(lp); o.start(); return {o,g};
       };
-      padNodes = [ makeVoice(220, 0), makeVoice(277.18, -6) ]; // A3 + C#4 (soft)
-      // slow LFO on amplitude
-      const lfo = audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.08;
-      const lfoGain = audioCtx.createGain(); lfoGain.gain.value=0.02;
-      lfo.connect(lfoGain); lfoGain.connect(padGain.gain); lfo.start();
+      padNodes = [ makeVoice(220, 0), makeVoice(277.18, -6) ];
+      const lfo = audioCtx.createOscillator(); const lfoGain = audioCtx.createGain();
+      lfo.type='sine'; lfo.frequency.value=0.08; lfoGain.gain.value=0.02; lfo.connect(lfoGain); lfoGain.connect(padGain.gain); lfo.start();
       padNodes.push({o:lfo,g:lfoGain});
-      // fade in
-      const t = audioCtx.currentTime;
-      padGain.gain.exponentialRampToValueAtTime(0.08, t+1.2);
+      const t=audioCtx.currentTime; padGain.gain.exponentialRampToValueAtTime(0.08, t+1.2);
     }
     function stopPad(){
       if(!audioCtx || !padGain) return;
       const t=audioCtx.currentTime;
-      try{ padGain.gain.exponentialRampToValueAtTime(0.0001, t+0.8); }catch(e){}
-      setTimeout(()=>{
-        padNodes.forEach(n=>{ try{ n.o.stop(); }catch(e){} });
-        padNodes=[]; padGain.disconnect(); padGain=null;
-      }, 900);
+      try{ padGain.gain.exponentialRampToValueAtTime(0.0001, t+0.8);}catch(e){}
+      setTimeout(()=>{ padNodes.forEach(n=>{try{n.o.stop();}catch(e){}}); padNodes=[]; try{padGain.disconnect();}catch(e){} padGain=null; }, 900);
     }
 
     // ---------- Session control ----------
@@ -250,11 +244,9 @@
       if(timer) return;
       i=0; paused=false; shareRow.classList.add('hidden');
       sessionRemain = sessionMin*60;
-      phaseName.textContent = phases[0].name;
-      phaseSec.textContent  = phases[0].sec;
+      phaseName.textContent = phases[0].name; phaseSec.textContent = phases[0].sec;
       circle.style.transform = `scale(${phases[0].scale})`;
       $('btnPause').disabled=false; $('btnReset').disabled=false; $('btnStart').disabled=true;
-      // sounds/music (user gesture present)
       chimeStart(); startPad();
       runSession(); nextPhase();
     }
@@ -269,9 +261,8 @@
     function nextPhase(){
       const p = phases[i];
       t = p.sec;
-      phaseName.textContent = p.name;
-      phaseSec.textContent  = t;
-      circle.style.transitionDuration = Math.max(1.2, p.sec*0.9)+'s';
+      phaseName.textContent = p.name; phaseSec.textContent = t;
+      circle.style.transitionDuration = Math.max(1.0, p.sec*0.85)+'s';
       circle.style.transform = `scale(${p.scale})`;
       timer = setInterval(()=>{
         if(!paused){
@@ -291,14 +282,12 @@
       if(paused) stopPad(); else startPad();
     }
     function reset(){
-      if(timer) { clearInterval(timer); timer=null; }
+      if(timer){ clearInterval(timer); timer=null; }
       if(sessionTimer){ clearInterval(sessionTimer); sessionTimer=null; }
       paused=false; sessionRemain=0;
-      circle.style.transform='scale(1)';
-      phaseName.textContent='Готово к началу'; phaseSec.textContent='—';
+      circle.style.transform='scale(1)'; phaseName.textContent='Готово к началу'; phaseSec.textContent='—';
       $('btnPause').disabled=true; $('btnReset').disabled=true; $('btnStart').disabled=false;
-      shareRow.classList.add('hidden');
-      stopPad();
+      shareRow.classList.add('hidden'); stopPad();
     }
     function finish(){
       clearInterval(sessionTimer); sessionTimer=null;
@@ -306,26 +295,17 @@
       $('btnStart').disabled=false; $('btnPause').disabled=true;
       gongEnd(); stopPad();
       phaseName.textContent='Сессия завершена'; phaseSec.textContent='✓';
-      // stats update
+      // stats
       const s=loadStats(); const today=todayISO();
       s.byDay[today] = (s.byDay[today]||0) + sessionMin;
-      if(s.lastDay !== today){
-        if(s.lastDay === yestISO()) s.streak = (s.streak||0) + 1;
-        else s.streak = 1;
-        s.lastDay = today;
-      }
+      if(s.lastDay !== today){ if(s.lastDay === yestISO()) s.streak=(s.streak||0)+1; else s.streak=1; s.lastDay=today; }
       saveStats(s); updateStatsUI();
       // share
       shareRow.classList.remove('hidden');
       const msg = `Я завершила ${sessionMin}-минутную практику дыхания сегодня 🙏`;
       shareBtn.onclick = async ()=> {
-        if(navigator.share){
-          try{
-            await navigator.share({ title:'Медитация дыханием', text: msg, url: window.location.href });
-          }catch(e){}
-        } else {
-          alert('Поделиться не поддерживается этим браузером. Используй кнопку Telegram.');
-        }
+        if(navigator.share){ try{ await navigator.share({title:'Медитация дыханием от AnyClass', text:msg, url:window.location.href}); }catch(e){} }
+        else { alert('Поделиться не поддерживается этим браузером. Используй кнопку Telegram.'); }
       };
       shareTG.href = "https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + encodeURIComponent(msg);
     }
