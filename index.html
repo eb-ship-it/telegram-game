@@ -46,9 +46,8 @@
       box-shadow: inset 0 2px 10px rgba(255,255,255,.06), 0 18px 40px rgba(0,0,0,.35);
       margin-inline:auto; max-width:100%;
     }
-    /* В полноэкранном режиме — круг крупнее */
-    .fs .circle{ width: min(88vmin, 720px); }
-
+    /* fullscreen (реальный) или focus (псевдо) */
+    .fs .circle, .focus .circle { width: min(88vmin, 720px); }
     .phase{text-align:center}
     .phase .name{font-size:clamp(16px,2.8vw,20px)}
     .phase .sec{font-variant-numeric:tabular-nums; font-weight:800; font-size:clamp(26px,6vw,44px)}
@@ -63,6 +62,10 @@
     .dot.on{background:linear-gradient(180deg,var(--accent2),#22c55e)}
     .hint{text-align:center; margin-top:8px; color:#c7d2fe}
     .hidden{display:none !important}
+    /* Псевдо‑фуллскрин для Telegram: скрываем всё лишнее */
+    .focus header, .focus aside, .focus .hint, .focus #btnReset, .focus #btnPause { display:none !important; }
+    .focus .grid { grid-template-columns: 1fr !important; }
+    .focus .stage { min-height: 70vh; }
     @media (max-width:420px){
       body{padding:10px} .app{padding:12px} .card{padding:10px}
       select,button{padding:8px 10px; font-size:13px}
@@ -124,13 +127,18 @@
     const $ = (id)=>document.getElementById(id);
     const durationSel = $('duration'), circle=$('circle'), phaseName=$('phaseName'), phaseSec=$('phaseSec'),
           musicToggle=$('musicToggle'), appRoot=$('appRoot'), btnFs=$('btnFs');
+
+    // --- распознаём Telegram WebView ---
+    const isTelegram = !!(window.Telegram && window.Telegram.WebApp) || /Telegram/i.test(navigator.userAgent);
+
+    // --- Breathing config (4-4-4-4) ---
     const phases=[{name:'Вдох',sec:4,scale:1.16},{name:'Пауза',sec:4,scale:1.16},{name:'Выдох',sec:4,scale:0.84},{name:'Пауза',sec:4,scale:0.84}];
     let i=0,t=0,timer=null,paused=false,sessionTimer=null,sessionRemain=0,sessionMin=3;
 
-    // Stats (как раньше)
-    const LS_KEY='anyclass_meditation_stats_v2';
-    function loadStats(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{byDay:{},streak:0,lastDay:null};}catch(e){return{byDay:{},streak:0,lastDay:null};}}
-    function saveStats(s){localStorage.setItem(LS_KEY,JSON.stringify(s));}
+    // --- Stats (7 days) ---
+    const LS_STATS='anyclass_meditation_stats_v2';
+    function loadStats(){try{return JSON.parse(localStorage.getItem(LS_STATS))||{byDay:{},streak:0,lastDay:null};}catch(e){return{byDay:{},streak:0,lastDay:null};}}
+    function saveStats(s){localStorage.setItem(LS_STATS,JSON.stringify(s));}
     function todayISO(d=new Date()){d.setHours(0,0,0,0);return d.toISOString().slice(0,10);}
     function yestISO(){const d=new Date();d.setDate(d.getDate()-1);d.setHours(0,0,0,0);return d.toISOString().slice(0,10);}
     function sumLast7(byDay){let sum=0;const d=new Date();for(let k=0;k<7;k++){const dd=new Date(d);dd.setDate(d.getDate()-k);sum+=byDay[todayISO(dd)]||0;}return sum;}
@@ -138,22 +146,56 @@
     function renderDots(c,count){c.innerHTML='';for(let i=0;i<7;i++){const d=document.createElement('div');d.className='dot'+(i<count?' on':'');c.appendChild(d);}}
     function updateStatsUI(){const s=loadStats();$('statMinutes').textContent=sumLast7(s.byDay)|0;$('statStreak').textContent=s.streak|0;renderDots($('weekDots'),weekDotsCount(s.byDay));}
 
-    // Sounds
-    let audioCtx;function ensureCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
-    function tone(freq=660,dur=0.25){ensureCtx();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.value=0.0001;o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime;g.gain.exponentialRampToValueAtTime(0.05,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.02);}
-    function chimeStart(){tone(660,0.18);setTimeout(()=>tone(880,0.18),140);}
-    function gongEnd(){tone(520,0.32);setTimeout(()=>tone(392,0.38),220);}
-    let padGain=null,padNodes=[];function startPad(){if(!musicToggle.checked)return;ensureCtx();padGain=audioCtx.createGain();padGain.gain.value=0.0001;padGain.connect(audioCtx.destination);const lp=audioCtx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=800;lp.Q.value=0.7;lp.connect(padGain);const makeVoice=(f,d)=>{const o=audioCtx.createOscillator();o.type='sine';o.frequency.value=f;o.detune.value=d;const g=audioCtx.createGain();g.gain.value=0.06;o.connect(g);g.connect(lp);o.start();return{o,g};};padNodes=[makeVoice(220,0),makeVoice(277.18,-6)];const lfo=audioCtx.createOscillator();const lfoGain=audioCtx.createGain();lfo.type='sine';lfo.frequency.value=0.08;lfoGain.gain.value=0.02;lfo.connect(lfoGain);lfoGain.connect(padGain.gain);lfo.start();padNodes.push({o:lfo,g:lfoGain});const t=audioCtx.currentTime;padGain.gain.exponentialRampToValueAtTime(0.08,t+1.2);}
-    function stopPad(){if(!audioCtx||!padGain)return;const t=audioCtx.currentTime;try{padGain.gain.exponentialRampToValueAtTime(0.0001,t+0.8);}catch(e){}setTimeout(()=>{padNodes.forEach(n=>{try{n.o.stop();}catch(e){}});padNodes=[];try{padGain.disconnect();}catch(e){}padGain=null;},900);}
+    // --- Music toggle persistence ---
+    const LS_MUSIC='anyclass_meditation_music_on';
+    function loadMusicSetting(){ const v = localStorage.getItem(LS_MUSIC); return v===null ? true : v==='1'; }
+    function saveMusicSetting(on){ localStorage.setItem(LS_MUSIC, on ? '1' : '0'); }
 
-    // Session control
+    // set initial checkbox (default ON)
+    musicToggle.checked = loadMusicSetting();
+    musicToggle.addEventListener('change', ()=> saveMusicSetting(musicToggle.checked));
+
+    // --- Sounds ---
+    let audioCtx; function ensureCtx(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); }
+    function tone(freq=660,dur=0.25){ if(!musicToggle.checked) return; ensureCtx();
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type='sine'; o.frequency.value=freq; g.gain.value=0.0001;
+      o.connect(g); g.connect(audioCtx.destination); const t=audioCtx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.05,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.start(t); o.stop(t+dur+0.02);
+    }
+    function chimeStart(){ tone(660,0.18); setTimeout(()=>tone(880,0.18),140); }
+    function gongEnd(){ tone(520,0.32); setTimeout(()=>tone(392,0.38),220); }
+
+    // --- Calm pad (procedural) ---
+    let padGain=null,padNodes=[];
+    function startPad(){
+      if(!musicToggle.checked) return;
+      ensureCtx();
+      padGain=audioCtx.createGain(); padGain.gain.value=0.0001; padGain.connect(audioCtx.destination);
+      const lp=audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800; lp.Q.value=0.7; lp.connect(padGain);
+      const makeVoice=(f,d)=>{ const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=f; o.detune.value=d;
+        const g=audioCtx.createGain(); g.gain.value=0.06; o.connect(g); g.connect(lp); o.start(); return {o,g}; };
+      padNodes=[makeVoice(220,0),makeVoice(277.18,-6)];
+      const lfo=audioCtx.createOscillator(); const lfoGain=audioCtx.createGain();
+      lfo.type='sine'; lfo.frequency.value=0.08; lfoGain.gain.value=0.02; lfo.connect(lfoGain); lfoGain.connect(padGain.gain); lfo.start();
+      padNodes.push({o:lfo,g:lfoGain});
+      const t=audioCtx.currentTime; padGain.gain.exponentialRampToValueAtTime(0.08, t+1.2);
+    }
+    function stopPad(){
+      if(!audioCtx||!padGain) return;
+      const t=audioCtx.currentTime;
+      try{ padGain.gain.exponentialRampToValueAtTime(0.0001, t+0.8); }catch(e){}
+      setTimeout(()=>{ padNodes.forEach(n=>{try{n.o.stop();}catch(e){}}); padNodes=[]; try{padGain.disconnect();}catch(e){} padGain=null; },900);
+    }
+
+    // --- Session control ---
     document.getElementById('btnStart').addEventListener('click',start);
     document.getElementById('btnPause').addEventListener('click',togglePause);
     document.getElementById('btnReset').addEventListener('click',reset);
     durationSel.addEventListener('change',()=>sessionMin=Number(durationSel.value));
     sessionMin=Number(durationSel.value);
 
-    function start(){ if(timer)return;
+    function start(){ if(timer) return;
       i=0; paused=false; sessionRemain=sessionMin*60;
       phaseName.textContent=phases[0].name; phaseSec.textContent=phases[0].sec;
       circle.style.transform=`scale(${phases[0].scale})`;
@@ -176,9 +218,13 @@
       if(s.lastDay!==today){ if(s.lastDay===yestISO()) s.streak=(s.streak||0)+1; else s.streak=1; s.lastDay=today; }
       saveStats(s); updateStatsUI();
     }
-    (function init(){ updateStatsUI(); const dots=$('weekDots'); dots.innerHTML=''; for(let k=0;k<7;k++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); } renderDots(dots,weekDotsCount(loadStats().byDay||{})); })();
+    (function init(){
+      updateStatsUI();
+      const dots=$('weekDots'); dots.innerHTML=''; for(let k=0;k<7;k++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); }
+      renderDots(dots,weekDotsCount(loadStats().byDay||{}));
+    })();
 
-    // ---------- Fullscreen ----------
+    // --- Fullscreen or Focus ---
     function inFullscreen(){
       return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     }
@@ -196,14 +242,26 @@
         else if(document.msExitFullscreen) await document.msExitFullscreen();
       }catch(e){}
     }
+
     btnFs.addEventListener('click', async ()=>{
-      if(inFullscreen()){ await exitFs(); }
-      else { await enterFs(appRoot); }
+      if(isTelegram){
+        // режим фокуса (псевдо‑fullscreen)
+        const on = !document.body.classList.contains('focus');
+        document.body.classList.toggle('focus', on);
+        btnFs.textContent = on ? 'Выйти из фокуса' : 'Во весь экран';
+      }else{
+        // обычный браузер — реальный fullscreen
+        if(inFullscreen()){ await exitFs(); }
+        else { await enterFs(appRoot); }
+      }
     });
+
     function onFsChange(){
       const fs = !!inFullscreen();
       document.body.classList.toggle('fs', fs);
-      btnFs.textContent = fs ? 'Выйти из полноэкранного' : 'Во весь экран';
+      if(!isTelegram){
+        btnFs.textContent = fs ? 'Выйти из полноэкранного' : 'Во весь экран';
+      }
     }
     ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(ev=>{
       document.addEventListener(ev, onFsChange);
